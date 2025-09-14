@@ -7,7 +7,7 @@ def main():
     # style = ttk.Style(root)
     # style.theme_use("vista")
 
-    root.title("DB Manager")
+    root.title("Quản lý CSDL")
     root.geometry("900x600")
     HoangAnh(root)
     root.mainloop()

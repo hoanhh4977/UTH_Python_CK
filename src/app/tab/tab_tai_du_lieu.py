@@ -1,5 +1,10 @@
+import io
+import json
+import requests
 import pandas as pd
 from threading import Thread
+from urllib.error import URLError
+
 from tkinter import Tk, filedialog, messagebox
 from tkinter.ttk import Label, Entry, Button, Frame
 from pandastable import Table, TableModel
@@ -43,58 +48,132 @@ class TabTaiDuLieu:
     def run(self):
         self.root.mainloop()
     
+    # --- Tải file từ máy ---
     def tai_du_lieu_tu_may(self):
         duong_dan = filedialog.askopenfilename()
+        if not duong_dan:
+            return
         self.tai_du_lieu_tu_may_entry.delete(0, 'end')
         self.tai_du_lieu_tu_may_entry.insert(0, duong_dan)
 
         self.loader.show()
+
         def task():
-            if duong_dan.endswith((".csv", ".json")):
-                if duong_dan.endswith(".csv"):
+            try:
+                if not duong_dan.lower().endswith((".csv", ".json")):
+                    # không hỗ trợ định dạng
+                    self.root.after(0, lambda: messagebox.showerror("Lỗi", "Loại file không hỗ trợ."))
+                    return
+
+                if duong_dan.lower().endswith(".csv"):
+                    # đọc csv (có thể ném EmptyDataError, ParserError, UnicodeDecodeError, FileNotFoundError...)
                     self.data = pd.read_csv(duong_dan)
                 else:
+                    # đọc json
+                    # pd.read_json có thể ném ValueError nếu không parse được
                     self.data = pd.read_json(duong_dan)
 
-                self.hien_thi_bang()
-            else:
-                self.loader.hide()
-                if duong_dan != "":
-                    self.root.after(0, messagebox.showerror(title="Lỗi", message="Loại file không hỗ trợ."))
-            
-            self.loader.hide()
-        
+                # cập nhật UI trong main thread
+                self.root.after(0, self.hien_thi_bang)
+
+            except FileNotFoundError:
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không tìm thấy file."))
+            except PermissionError:
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không có quyền truy cập file."))
+            except pd.errors.EmptyDataError:
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", "File rỗng."))
+            except pd.errors.ParserError as e:
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi phân tích file CSV: {e}"))
+            except UnicodeDecodeError:
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không thể giải mã file (encoding)."))
+            except Exception as e:
+                # catch-all để tránh crash; in log để debug
+                print("Error load local file:", e)
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi khi đọc file: {e}"))
+            finally:
+                # hide loader luôn phải chạy trên main thread
+                self.root.after(0, self.loader.hide)
+
         Thread(target=task, daemon=True).start()
             
+    # --- Tải file từ URL ---
     def tai_du_lieu_tu_url(self):
-        url = self.tai_du_lieu_tu_url_entry.get()
+        url = self.tai_du_lieu_tu_url_entry.get().strip()
+        if not url:
+            messagebox.showerror("Lỗi", "Vui lòng nhập URL.")
+            return
+
+        if not is_valid_url(url):
+            messagebox.showerror("Lỗi", "URL không hợp lệ.")
+            return
 
         self.loader.show()
 
         def task():
-            if is_valid_url(url):
-                try:
-                    if url.endswith((".csv", ".json")):
-                        if url.endswith(".csv"):
-                            self.data = pd.read_csv(url)
-                        else:
-                            self.data = pd.read_json(url)
-                            
-                        self.root.after(0, self.hien_thi_bang())
-                    else:
-                        self.loader.hide()
-                        self.root.after(0, messagebox.showerror(title="Lỗi", message="Loại file không hỗ trợ."))
-                except Exception as e:
-                    print(str(e))
-                    self.loader.hide()
-                    self.root.after(0, messagebox.showerror(title="Lỗi", message="File không tồn tại."))
-            else:
-                self.loader.hide()
-                self.root.after(0, lambda: messagebox.showerror(title="Lỗi", message="URL không hợp lệ."))
+            try:
+                url_l = url.lower()
+                if not url_l.endswith((".csv", ".json")):
+                    self.root.after(0, lambda: messagebox.showerror("Lỗi", "Loại file không hỗ trợ."))
+                    return
 
-            self.root.after(0, self.loader.hide)
-        
+                # tải nội dung với timeout (nếu mạng yếu hoặc không có internet sẽ ném lỗi)
+                text = self._download_text(url, timeout=10)
+
+                # chuyển sang DataFrame tùy loại
+                if url_l.endswith(".csv"):
+                    try:
+                        self.data = pd.read_csv(io.StringIO(text))
+                    except pd.errors.EmptyDataError:
+                        self.root.after(0, lambda: messagebox.showerror("Lỗi", "File CSV rỗng."))
+                        return
+                    except pd.errors.ParserError as e:
+                        self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi phân tích CSV: {e}"))
+                        return
+                    except UnicodeDecodeError:
+                        self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không thể giải mã nội dung CSV."))
+                        return
+                else:  # json
+                    try:
+                        # thử đọc bằng pandas
+                        self.data = pd.read_json(io.StringIO(text))
+                    except ValueError:
+                        # fallback: parse json thủ công rồi normalise
+                        obj = json.loads(text)
+                        # nếu obj là dict hoặc list, chuyển qua DataFrame
+                        self.data = pd.json_normalize(obj)
+
+                # Thành công: cập nhật UI
+                self.root.after(0, self.hien_thi_bang)
+
+            except requests.exceptions.Timeout:
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Hết thời gian chờ khi tải dữ liệu. Kiểm tra kết nối."))
+            except (requests.exceptions.ConnectionError, ConnectionRefusedError):
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không thể kết nối đến server. Kiểm tra Internet."))
+            except requests.exceptions.HTTPError as e:
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Server trả lỗi HTTP: {e}"))
+            except URLError:
+                # nếu dùng urllib, URLError sẽ được bắt ở đây
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không thể tải dữ liệu. Kiểm tra kết nối Internet."))
+            except json.JSONDecodeError:
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Dữ liệu JSON không hợp lệ."))
+            except Exception as e:
+                print("Error download url:", e)
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi khi tải dữ liệu: {e}"))
+            finally:
+                self.root.after(0, self.loader.hide)
+
         Thread(target=task, daemon=True).start()
+
+    def hien_thi_bang(self):
+        # kiểm tra self.data tồn tại và không rỗng
+        if isinstance(self.data, pd.DataFrame) and not self.data.empty:
+            self.bang.updateModel(TableModel(self.data))
+            self.bang.redraw()
+        else:
+            # nếu không có dữ liệu, xóa bảng hiện tại
+            self.bang.updateModel(TableModel(pd.DataFrame()))
+            self.bang.redraw()
+            messagebox.showinfo("Thông báo", "Không có dữ liệu để hiển thị.")
         
     def hien_thi_bang(self):
         if not self.data.empty:
