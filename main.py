@@ -8,7 +8,7 @@ def main():
     # style.theme_use("vista")
 
     root.title("Quản lý CSDL")
-    root.geometry("900x600")
+    root.geometry("900x750")
     HoangAnh(root)
     root.mainloop()
 

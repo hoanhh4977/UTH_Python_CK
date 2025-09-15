@@ -14,39 +14,39 @@ from src.utils.utilities import is_valid_url
 
 class TabTaiDuLieu:
     def __init__(self, notebook):
-        self.root = Frame(notebook)
+        self.frame = Frame(notebook)
         self.data = None
-        self.loader = Loader(self.root)
+        self.loader = Loader(self.frame)
         self.main = None
         self.build_ui()
     
     def build_ui(self):
-        self.root.rowconfigure(2, weight=1)
-        self.root.columnconfigure(0, weight=1)
+        self.frame.rowconfigure(2, weight=1)
+        self.frame.columnconfigure(0, weight=1)
         # Dòng đầu tiên
-        Label(self.root, text="Tải dữ liệu từ máy:").grid(row=0, column=0, sticky="w")
-        self.tai_du_lieu_tu_may_entry = Entry(self.root, width=50)
+        Label(self.frame, text="Tải dữ liệu từ máy:").grid(row=0, column=0, sticky="w")
+        self.tai_du_lieu_tu_may_entry = Entry(self.frame, width=50)
         self.tai_du_lieu_tu_may_entry.grid(row=0, column=1, sticky="ew", padx=10)
-        Button(self.root, text="Chọn...", command=self.tai_du_lieu_tu_may).grid(row=0, column=2)
+        Button(self.frame, text="Chọn...", command=self.tai_du_lieu_tu_may).grid(row=0, column=2)
         
         # Dòng thứ hai
-        Label(self.root, text="Tải dữ liệu từ URL:").grid(row=1, column=0, sticky="w")
-        self.tai_du_lieu_tu_url_entry = Entry(self.root, width=50)
+        Label(self.frame, text="Tải dữ liệu từ URL:").grid(row=1, column=0, sticky="w")
+        self.tai_du_lieu_tu_url_entry = Entry(self.frame, width=50)
         self.tai_du_lieu_tu_url_entry.grid(row=1, column=1, sticky="ew", padx=10)
-        Button(self.root, text="Tải dữ liệu", command=self.tai_du_lieu_tu_url).grid(row=1, column=2)
+        Button(self.frame, text="Tải dữ liệu", command=self.tai_du_lieu_tu_url).grid(row=1, column=2)
         
         # Dòng thứ ba
-        khung_bang = Frame(self.root)
+        khung_bang = Frame(self.frame)
         khung_bang.grid(row=2, column=0, columnspan=3, sticky="nsew")
         self.bang = Table(khung_bang, dataframe=pd.DataFrame())
         self.bang.show()
         # tree.pack(fill="both", expand=True)
         
         # Dòng thứ tư
-        Button(self.root,text="Nhập vào CSDL").grid(row=3,column=0, columnspan=3)
+        Button(self.frame,text="Nhập vào CSDL").grid(row=3,column=0, columnspan=3)
         
     def run(self):
-        self.root.mainloop()
+        self.frame.mainloop()
     
     # --- Tải file từ máy ---
     def tai_du_lieu_tu_may(self):
@@ -62,7 +62,7 @@ class TabTaiDuLieu:
             try:
                 if not duong_dan.lower().endswith((".csv", ".json")):
                     # không hỗ trợ định dạng
-                    self.root.after(0, lambda: messagebox.showerror("Lỗi", "Loại file không hỗ trợ."))
+                    self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Loại file không hỗ trợ."))
                     return
 
                 if duong_dan.lower().endswith(".csv"):
@@ -74,25 +74,25 @@ class TabTaiDuLieu:
                     self.data = pd.read_json(duong_dan)
 
                 # cập nhật UI trong main thread
-                self.root.after(0, self.hien_thi_bang)
+                self.frame.after(0, self.hien_thi_bang)
 
             except FileNotFoundError:
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không tìm thấy file."))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Không tìm thấy file."))
             except PermissionError:
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không có quyền truy cập file."))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Không có quyền truy cập file."))
             except pd.errors.EmptyDataError:
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", "File rỗng."))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", "File rỗng."))
             except pd.errors.ParserError as e:
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi phân tích file CSV: {e}"))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi phân tích file CSV: {e}"))
             except UnicodeDecodeError:
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không thể giải mã file (encoding)."))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Không thể giải mã file (encoding)."))
             except Exception as e:
                 # catch-all để tránh crash; in log để debug
                 print("Error load local file:", e)
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi khi đọc file: {e}"))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi khi đọc file: {e}"))
             finally:
                 # hide loader luôn phải chạy trên main thread
-                self.root.after(0, self.loader.hide)
+                self.frame.after(0, self.loader.hide)
 
         Thread(target=task, daemon=True).start()
             
@@ -113,7 +113,7 @@ class TabTaiDuLieu:
             try:
                 url_l = url.lower()
                 if not url_l.endswith((".csv", ".json")):
-                    self.root.after(0, lambda: messagebox.showerror("Lỗi", "Loại file không hỗ trợ."))
+                    self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Loại file không hỗ trợ."))
                     return
 
                 # tải nội dung với timeout (nếu mạng yếu hoặc không có internet sẽ ném lỗi)
@@ -124,13 +124,13 @@ class TabTaiDuLieu:
                     try:
                         self.data = pd.read_csv(io.StringIO(text))
                     except pd.errors.EmptyDataError:
-                        self.root.after(0, lambda: messagebox.showerror("Lỗi", "File CSV rỗng."))
+                        self.frame.after(0, lambda: messagebox.showerror("Lỗi", "File CSV rỗng."))
                         return
                     except pd.errors.ParserError as e:
-                        self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi phân tích CSV: {e}"))
+                        self.frame.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi phân tích CSV: {e}"))
                         return
                     except UnicodeDecodeError:
-                        self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không thể giải mã nội dung CSV."))
+                        self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Không thể giải mã nội dung CSV."))
                         return
                 else:  # json
                     try:
@@ -143,24 +143,24 @@ class TabTaiDuLieu:
                         self.data = pd.json_normalize(obj)
 
                 # Thành công: cập nhật UI
-                self.root.after(0, self.hien_thi_bang)
+                self.frame.after(0, self.hien_thi_bang)
 
             except requests.exceptions.Timeout:
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Hết thời gian chờ khi tải dữ liệu. Kiểm tra kết nối."))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Hết thời gian chờ khi tải dữ liệu. Kiểm tra kết nối."))
             except (requests.exceptions.ConnectionError, ConnectionRefusedError):
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không thể kết nối đến server. Kiểm tra Internet."))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Không thể kết nối đến server. Kiểm tra Internet."))
             except requests.exceptions.HTTPError as e:
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Server trả lỗi HTTP: {e}"))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", f"Server trả lỗi HTTP: {e}"))
             except URLError:
                 # nếu dùng urllib, URLError sẽ được bắt ở đây
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không thể tải dữ liệu. Kiểm tra kết nối Internet."))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Không thể tải dữ liệu. Kiểm tra kết nối Internet."))
             except json.JSONDecodeError:
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Dữ liệu JSON không hợp lệ."))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", "Dữ liệu JSON không hợp lệ."))
             except Exception as e:
                 print("Error download url:", e)
-                self.root.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi khi tải dữ liệu: {e}"))
+                self.frame.after(0, lambda: messagebox.showerror("Lỗi", f"Lỗi khi tải dữ liệu: {e}"))
             finally:
-                self.root.after(0, self.loader.hide)
+                self.frame.after(0, self.loader.hide)
 
         Thread(target=task, daemon=True).start()
 
