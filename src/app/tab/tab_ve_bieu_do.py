@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression 
 
-from tkinter import BooleanVar, messagebox
+from tkinter import BooleanVar, filedialog, messagebox
 from tkinter.ttk import Button, Checkbutton, Label, Entry, Frame, LabelFrame, Combobox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -66,6 +66,8 @@ class TabVeBieuDo:
         Button(self.khung_tuy_chon, text="Vẽ biểu đồ", command=self.ve_bieu_do).pack(fill="x", pady=5)
         Button(self.khung_tuy_chon, text="Làm mới", command=self.lam_moi).pack(fill="x", pady=5)
 
+        Button(self.khung_tuy_chon, text="Xuất hình", command=self.export_bieu_do).pack(fill="x", pady=5)
+
         # Ban đầu: hiển thị nhãn placeholder thay vì plot rỗng
         self.label_placeholder = Label(self.khung_bieu_do, text="Chưa có biểu đồ nào được vẽ")
         self.label_placeholder.pack(expand=True)
@@ -84,6 +86,8 @@ class TabVeBieuDo:
         self.hop_y.pack(fill="x", pady=2)
 
         Button(self.khung_tuy_chon, text="Hồi quy tuyến tính", command=self.hoi_quy).pack(fill="x", pady=5)
+
+
 
     def set_main(self, main_window):
         self.main = main_window
@@ -251,3 +255,20 @@ class TabVeBieuDo:
             widget.destroy()
         self.label_placeholder = Label(self.khung_bieu_do, text="Chưa có biểu đồ nào được vẽ")
         self.label_placeholder.pack(expand=True)
+
+
+    def export_bieu_do(self):
+        if self.fig is None:
+            messagebox.showerror("Lỗi", "Chưa có biểu đồ nào để xuất")
+            return
+
+        try:
+            duong_dan = filedialog.asksaveasfilename(
+                defaultextension=".png",
+                filetypes=[("PNG Image", "*.png"), ("JPEG Image", "*.jpg"), ("PDF File", "*.pdf"), ("All Files", "*.*")]
+            )
+            if duong_dan:
+                self.fig.savefig(duong_dan, bbox_inches="tight")
+                messagebox.showinfo("Thành công", f"Đã xuất biểu đồ ra file:\n{duong_dan}")
+        except Exception as e:
+            messagebox.showerror("Lỗi", f"Không thể xuất biểu đồ: {e}")
