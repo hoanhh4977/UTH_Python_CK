@@ -74,14 +74,18 @@ class TabSQL:
         query = self.sql_text.get("1.0", "end").strip()
         if not query:
             return self.log("⚠️ Chưa nhập câu lệnh SQL.")
-        self.log(f"Đang chạy câu lệnh:\n{query}")
-        if self.run_query_callback:
-            df = self.run_query_callback(query)
-            if isinstance(df, pd.DataFrame):
-                self.update_result_table(df)
-                self.log(f"✅ Trả về {len(df)} dòng.")
-            else:
-                self.log("⚠️ Không có dữ liệu trả về.")
+        try:
+            self.main.ketnoi.cursor().execute(f"EXPLAIN {query}")
+            self.log(f"Đang chạy câu lệnh:\n{query}")
+            if self.run_query_callback:
+                df = self.run_query_callback(query)
+                if isinstance(df, pd.DataFrame):
+                    self.update_result_table(df)
+                    self.log(f"✅ Trả về {len(df)} dòng.")
+                else:
+                    self.log("⚠️ Không có dữ liệu trả về.")
+        except Exception as e:
+            self.log(f"Câu lệnh SQL không hợp lệ: {str(e)}")
 
     def clear_query(self):
         self.sql_text.delete("1.0", "end")
