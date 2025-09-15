@@ -35,8 +35,8 @@ class TabSQL:
         self.sql_text.config(yscrollcommand=sql_scroll.set)
         
         #Nut tro ly LLM(placeholder)
-        assist_btn = ttk.Button(editor_frame, text="🤖", width=3, command=self.llm_assist)
-        assist_btn.place(relx=1.0, rely=0.0, anchor="ne")
+        # assist_btn = ttk.Button(editor_frame, text="🤖", width=3, command=self.llm_assist)
+        # assist_btn.place(relx=1.0, rely=0.0, anchor="ne")
         
         # ---------- Kết quả truy vấn ----------
         result_frame = ttk.Frame(self.frame)
@@ -71,7 +71,7 @@ class TabSQL:
 
     # --------- Các phương thức xử lý ---------
     def run_query(self):
-        query = self.sql_text.get().strip()
+        query = self.sql_text.get("1.0", "end").strip()
         if not query:
             return self.log("⚠️ Chưa nhập câu lệnh SQL.")
         self.log(f"Đang chạy câu lệnh:\n{query}")

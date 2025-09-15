@@ -6,7 +6,7 @@ from tkinter import filedialog, messagebox
 from pandastable import Table, TableModel
 import pandas as pd
 
-from src.app.widgets import Loader
+from src.app.widgets.loader import Loader
 
 
 class TabChonFileDB:
@@ -49,6 +49,7 @@ class TabChonFileDB:
                 if duong_dan.endswith(".db"):
                     try:
                         self.main.ketnoi = sqlite3.connect(duong_dan, check_same_thread=False)
+                        self.main.tab_ve_bieu_do.cap_nhat_bang()
                         query = "SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence';"
                         df = pd.read_sql_query(query, self.main.ketnoi)
                         self.hien_thi_bang(df)
@@ -60,7 +61,6 @@ class TabChonFileDB:
                 self.frame.after(0, messagebox.showerror("Lỗi", "Tải dữ liệu thất bại"))
                 
             self.frame.after(0, self.loader.hide)
-        
         
         Thread(target=task, daemon=True).start()
         

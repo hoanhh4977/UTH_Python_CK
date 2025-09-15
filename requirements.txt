@@ -1,0 +1,5 @@
+ttkthemes
+tkinter
+pandas
+matplotlib
+scikit-learn
