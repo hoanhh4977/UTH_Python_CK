@@ -1,5 +1,5 @@
 ttkthemes
-tkinter
+pandastable
 pandas
 matplotlib
 scikit-learn
