@@ -24,7 +24,7 @@ class TabTaiDuLieu:
         self.frame.columnconfigure(0, weight=1)
         # Dòng đầu tiên
         Label(self.frame, text="Tải dữ liệu từ máy:").grid(row=0, column=0, sticky="w")
-        self.tai_du_lieu_tu_may_entry = Entry(self.frame, width=50)
+        self.tai_du_lieu_tu_may_entry = Entry(self.frame, width=50, state="disabled")
         self.tai_du_lieu_tu_may_entry.grid(row=0, column=1, sticky="ew", padx=10)
         Button(self.frame, text="Chọn...", command=self.tai_du_lieu_tu_may).grid(row=0, column=2)
         

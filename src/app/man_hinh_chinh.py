@@ -3,6 +3,7 @@ from tkinter import messagebox
 from tkinter.ttk import Notebook
 
 from src.app.tab import TabChonFileDB, TabTaiDuLieu, TabSQL, TabVeBieuDo
+from src.gpt.text2sql import Text2SQLAgent
 
 class ManHinhChinh:
     def __init__(self, root):

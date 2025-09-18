@@ -6,11 +6,14 @@ class Loader:
         self.parent = parent
         self.progress = None
 
-    def show(self):
+    def show(self, is_pack = False):
         if self.progress is None:
             self.progress = ttk.Progressbar(self.parent, mode="indeterminate")
             # place it at the bottom row, spanning all columns
-            self.progress.grid(row=99, column=0, columnspan=3, sticky="ew", pady=5)
+            if is_pack:
+                self.progress.pack(fill="x", pady=5)
+            else:
+                self.progress.grid(row=99, column=0, columnspan=3, sticky="ew", pady=5)
             self.progress.start()
 
     def hide(self):
