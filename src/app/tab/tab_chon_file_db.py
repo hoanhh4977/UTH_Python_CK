@@ -11,12 +11,17 @@ from src.app.widgets.loader import Loader
 
 class TabChonFileDB:
     def __init__(self, notebook):
+        # Khởi tạo frame chứa giao diện tab chọn file db
         self.frame = Frame(notebook)
+        # Khởi tạo biến main để chứa self của màn hình chính
         self.main = None
+        # Khởi tạo loader để làm trạng thái loading
         self.loader = Loader(self.frame)
+        # Gọi build_ui để thêm các thành phần của giao diện tab chọn file db
         self.build_ui()
 
     def build_ui(self):
+        # Giãn các thành phần khi kích thước màn hình thay đổi
         self.frame.rowconfigure(2, weight=1)
         self.frame.columnconfigure(1, weight=1)  # cột 1 (Entry) sẽ giãn
 
@@ -38,20 +43,26 @@ class TabChonFileDB:
         self.bang.show()
 
     def ket_noi_DB(self):
+        # Kết nối 1 file đã chọn
         duong_dan = self.chon_file_DB_entry.get()
         
         if not duong_dan:
             messagebox.showerror("Lỗi", "Bạn chưa nhập đường dẫn.")
-            
+        
+        # Hiện trạng thái loading
         self.loader.show()
         def task():
             try:
                 if duong_dan.endswith(".db"):
                     try:
+                        # Kết nối vào file db và gán nó vào biến ketnoi của màn hình chính
                         self.main.ketnoi = sqlite3.connect(duong_dan, check_same_thread=False)
+                        # Cập nhật lại các cột của CSDL hiện tại
                         self.main.tab_ve_bieu_do.cap_nhat_bang()
+                        # Truy vấn tên của tất cả các bảng hiện có trong file db
                         query = "SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence';"
                         df = pd.read_sql_query(query, self.main.ketnoi)
+                        # Hiển thị thông tin lên màn hình
                         self.hien_thi_bang(df)
                     except:
                         self.frame.after(0, messagebox.showerror("Lỗi", "File đã chọn không tồn tại"))
@@ -73,14 +84,6 @@ class TabChonFileDB:
         
         self.chon_file_DB_entry.delete(0, 'end')
         self.chon_file_DB_entry.insert(0, duong_dan)
-        
-
-    def run(self):
-        self.frame.mainloop()
 
     def set_main(self, main_window):
         self.main = main_window
-
-if __name__ == "__main__":
-    app = TabChonFileDB()
-    app.run()

@@ -10,13 +10,17 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class TabVeBieuDo:
     def __init__(self, notebook):
+        # Khởi tạo frame chứa các thành phần giao diện của tab vẽ biểu đồ
         self.frame = Frame(notebook)
+        # Khởi tạo biến main để chứa self của màn hình chính
         self.main = None
+        # Ô chứa hình vẽ
         self.canvas = None
         self.df = None  # dữ liệu hiện tại
         self.fig = None
         self.ax = None
 
+        # Gọi build_ui để thêm các thành phần của giao diện của tab vẽ biểu đồ
         self.build_ui()
     
     def build_ui(self):
@@ -92,6 +96,7 @@ class TabVeBieuDo:
     def set_main(self, main_window):
         self.main = main_window
 
+    # Cập nhật lại các cột của CSDL
     def cap_nhat_bang(self):
         """Cập nhật danh sách bảng nếu nguồn là CSDL"""
         nguon = self.hop_nguon.get()
@@ -121,6 +126,7 @@ class TabVeBieuDo:
             else:
                 self.cap_nhat_cot(self.main.query_data)
 
+    # Cập nhật lại cột của bảng
     def cap_nhat_cot_theo_bang(self):
         """Khi chọn bảng → cập nhật df và cột"""
         try:
@@ -138,6 +144,7 @@ class TabVeBieuDo:
             messagebox.showerror("Lỗi", f"Không thể lấy dữ liệu từ bảng: {e}")
 
     def cap_nhat_cot(self, df):
+        # Cập nhật lại cột
         self.df = df
         if df is None or df.empty:
             self.hop_cot["values"] = []
@@ -151,6 +158,7 @@ class TabVeBieuDo:
         self.hop_cot.current(0)
 
     def thong_ke(self):
+        # Cho ra số liệu về trung bình, độ lệch chuẩn, ....
         if self.df is None or self.df.empty:
             messagebox.showerror("Lỗi", "Chưa có dữ liệu để thống kê")
             return

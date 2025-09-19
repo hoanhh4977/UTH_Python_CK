@@ -112,6 +112,7 @@ class TabSQL:
 
     # --------- Các phương thức xử lý ---------
     def run_query(self):
+        # Thực thi câu lệnh SQL
         query = self.sql_text.get("1.0", "end").strip()
         if not query:
             return self.log("⚠️ Chưa nhập câu lệnh SQL.")
@@ -137,9 +138,11 @@ class TabSQL:
 
 
     def clear_query(self):
+        # Xóa câu lệnh SQL hiện tại
         self.sql_text.delete("1.0", "end")
 
     def save_result(self):
+        # Lưu kết quả vào 1 file csv
         file_path = filedialog.asksaveasfilename(
             defaultextension=".csv",
             filetypes=[("CSV Files", "*.csv")],
@@ -155,6 +158,7 @@ class TabSQL:
             messagebox.showerror("Lỗi", str(e))
 
     def send_to_plot(self):
+        # Gửi kết quả vào biến query_data của màn hình chính
         if self.send_to_plot_callback:
             df = self.ptable.model.df
             self.send_to_plot_callback(df)
@@ -166,12 +170,14 @@ class TabSQL:
         self.ptable.redraw()
 
     def log(self, message: str):
+        # In ra thông tin vào ô nhật ký thực thi
         self.log_text.config(state="normal")
         self.log_text.insert("end", message + "\n")
         self.log_text.see("end")
         self.log_text.config(state="disabled")
 
     def llm_assist(self):
+        # Sử dụng AI để sinh ra câu lệnh SQL
         query = self.nl_input.get("1.0", "end-1c").strip()
         db_path = self.main.tab_chon_file_db.chon_file_DB_entry.get().strip()
         self.log(f"[🤖 Trợ lý] (placeholder) Sẽ gửi đến LLM:\n{query if query else '(trống)'}")
@@ -202,10 +208,3 @@ class TabSQL:
         self.sql_text.delete("1.0", "end")
         if sql_query:
             self.sql_text.insert("1.0", sql_query)
-        
-    def run(self):
-        self.frame.mainloop()
-        
-if __name__ == "__main__":
-    app = TabSQL()
-    app.run()

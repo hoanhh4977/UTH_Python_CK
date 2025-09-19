@@ -24,7 +24,9 @@ class Text2SQLAgent:
             max_retries=3,
         )
 
+        # Khởi tạo đường dẫn
         self.db_path = None
+        # Khởi tạo biến chứa AI
         self.agent_executor = None
 
 
@@ -56,20 +58,30 @@ class Text2SQLAgent:
 
             # Gán lại để sử dụng cho lần sau nếu sử dụng cùng 1 file .DB
             self.db_path = db_path
+            # Gán lại AI
             self.agent_executor = agent_executor
 
+        # Chạy AI để ra kết quả gán vào biến output
         output = self.agent_executor.invoke(
             {"messages": [{"role": "user", "content": query}]}
         )
 
+        # Danh sách các bước thực hiện
         messages: List[AnyMessage] = output["messages"]
 
+        # Câu SQL Query sinh ra bởi AI
         query = None
+        # Duyệt qua từng bước thực hiện
         for message in messages:
+            # Lấy hàm đã gọi trong bước thực hiện
             if message.additional_kwargs.get("tool_calls"):
+                # Lấy hàm đã gọi trong bước thực hiện
                 function = message.additional_kwargs.get("tool_calls")[0]["function"]
+                # Lấy tên hàm đã gọi
                 function_name = function.get("name")
+                # Kiểm tra nếu tên hàm là hàm dùng để thực thi SQL có nghĩa là sẽ chứa biến
                 if function_name == "sql_db_query":
+                    # lấy câu SQL đã sinh ra được
                     query = json.loads(function.get("arguments")).get("query")
-
+        # Trả về danh sách các bước thực hiện và câu SQL
         return messages, query

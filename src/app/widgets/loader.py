@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 class Loader:
+    # Dùng cho trạng thái loading
     def __init__(self, parent):
         self.parent = parent
         self.progress = None
@@ -9,7 +10,6 @@ class Loader:
     def show(self, is_pack = False):
         if self.progress is None:
             self.progress = ttk.Progressbar(self.parent, mode="indeterminate")
-            # place it at the bottom row, spanning all columns
             if is_pack:
                 self.progress.pack(fill="x", pady=5)
             else:

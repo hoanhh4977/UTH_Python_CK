@@ -14,12 +14,17 @@ from src.utils.utilities import is_valid_url
 
 class TabTaiDuLieu:
     def __init__(self, notebook):
+        # Khởi tạo frame chứa các thành phần trong giao diện của tab tải dữ liệu
         self.frame = Frame(notebook)
+        # Khởi tạo loader để hiển thị trạng thái loading
         self.loader = Loader(self.frame)
+        # Khởi tạo main để chứa self của màn hình chính
         self.main = None
+        # Gọi build_ui để thêm các thành phần vào giao diện của tab tải dữ liệu 
         self.build_ui()
     
     def build_ui(self):
+        # Giãn các thành phần trong giao diện khi kích thước màn hình thay đổi
         self.frame.rowconfigure(2, weight=1)
         self.frame.columnconfigure(0, weight=1)
         # Dòng đầu tiên
@@ -42,18 +47,18 @@ class TabTaiDuLieu:
 
         # Dòng thứ tư
         Button(self.frame,text="Nhập vào CSDL", command=self.nhap_vao_csdl).grid(row=3,column=0, columnspan=3)
-        
-    def run(self):
-        self.frame.mainloop()
     
     # --- Tải file từ máy ---
     def tai_du_lieu_tu_may(self):
+        # Mở cửa sổ để chọn file trong máy
         duong_dan = filedialog.askopenfilename()
         if not duong_dan:
             return
+        # Hiển thị đường dẫn vừa chọn lên ô entry tải dữ liệu
         self.tai_du_lieu_tu_may_entry.delete(0, 'end')
         self.tai_du_lieu_tu_may_entry.insert(0, duong_dan)
 
+        # Hiển thị trạng thái loading
         self.loader.show()
 
         def task():
@@ -95,6 +100,7 @@ class TabTaiDuLieu:
             
     # --- Tải file từ URL ---
     def tai_du_lieu_tu_url(self):
+        # Lấy link url ô entry url
         url = self.tai_du_lieu_tu_url_entry.get().strip()
         if not url:
             messagebox.showerror("Lỗi", "Vui lòng nhập URL.")
@@ -161,6 +167,7 @@ class TabTaiDuLieu:
 
         Thread(target=task, daemon=True).start()
 
+    # Hiển thị bảng dữ liệu đã lấy
     def hien_thi_bang(self):
         # kiểm tra self.main.imported_data tồn tại và không rỗng
         if isinstance(self.main.imported_data, pd.DataFrame) and not self.main.imported_data.empty:
@@ -171,7 +178,8 @@ class TabTaiDuLieu:
             self.bang.updateModel(TableModel(pd.DataFrame()))
             self.bang.redraw()
             messagebox.showinfo("Thông báo", "Không có dữ liệu để hiển thị.")
-        
+    
+    # Nhập vào 1 bảng mới hoặc đã tồn tại trong CSDL đã chọn trong tab chọn file DB
     def nhap_vao_csdl(self):
         if self.main.imported_data is None or self.main.imported_data.empty:
             messagebox.showerror("Lỗi", "Không có dữ liệu để nhập.")
