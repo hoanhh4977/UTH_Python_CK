@@ -76,23 +76,6 @@ class TabVeBieuDo:
         self.label_placeholder = Label(self.khung_bieu_do, text="Chưa có biểu đồ nào được vẽ")
         self.label_placeholder.pack(expand=True)
 
-        # --- Thống kê ---
-        Label(self.khung_tuy_chon, text="Thống kê dữ liệu:").pack(anchor="w", pady=5)
-        Button(self.khung_tuy_chon, text="Xem thống kê", command=self.thong_ke).pack(fill="x", pady=2)
-
-        # --- Hồi quy ---
-        Label(self.khung_tuy_chon, text="Chọn X (độc lập):").pack(anchor="w", pady=2)
-        self.hop_x = Combobox(self.khung_tuy_chon, state="readonly")
-        self.hop_x.pack(fill="x", pady=2)
-
-        Label(self.khung_tuy_chon, text="Chọn Y (phụ thuộc):").pack(anchor="w", pady=2)
-        self.hop_y = Combobox(self.khung_tuy_chon, state="readonly")
-        self.hop_y.pack(fill="x", pady=2)
-
-        Button(self.khung_tuy_chon, text="Hồi quy tuyến tính", command=self.hoi_quy).pack(fill="x", pady=5)
-
-
-
     def set_main(self, main_window):
         self.main = main_window
 
@@ -136,8 +119,6 @@ class TabVeBieuDo:
             query = f"SELECT * FROM {bang};"
             self.df = pd.read_sql_query(query, self.main.ketnoi)
             self.hop_cot["values"] = list(self.df.columns)
-            self.hop_x["values"] = list(self.df.columns)
-            self.hop_y["values"] = list(self.df.columns)
             if len(self.df.columns) > 0:
                 self.hop_cot.current(0)
         except Exception as e:
@@ -148,74 +129,10 @@ class TabVeBieuDo:
         self.df = df
         if df is None or df.empty:
             self.hop_cot["values"] = []
-            self.hop_x["values"] = []
-            self.hop_y["values"] = []
             return
         cols = list(df.columns)
         self.hop_cot["values"] = cols
-        self.hop_x["values"] = cols
-        self.hop_y["values"] = cols
         self.hop_cot.current(0)
-
-    def thong_ke(self):
-        # Cho ra số liệu về trung bình, độ lệch chuẩn, ....
-        if self.df is None or self.df.empty:
-            messagebox.showerror("Lỗi", "Chưa có dữ liệu để thống kê")
-            return
-        try:
-            cot = self.hop_cot.get()
-            if not cot:
-                messagebox.showerror("Lỗi", "Vui lòng chọn cột dữ liệu")
-                return
-            stats = self.df[cot].describe()
-            msg = "\n".join([f"{k}: {v}" for k, v in stats.to_dict().items()])
-            messagebox.showinfo("Thống kê mô tả", msg)
-        except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể thống kê: {e}")
-
-
-    def hoi_quy(self):
-        if self.df is None or self.df.empty:
-            messagebox.showerror("Lỗi", "Chưa có dữ liệu để hồi quy")
-            return
-        try:
-            cot_x = self.hop_x.get()
-            cot_y = self.hop_y.get()
-            if not cot_x or not cot_y:
-                messagebox.showerror("Lỗi", "Vui lòng chọn cả X và Y")
-                return
-
-            X = self.df[[cot_x]].dropna().values
-            y = self.df[cot_y].dropna().values
-
-            if len(X) != len(y) or len(X) < 2:
-                messagebox.showerror("Lỗi", "Dữ liệu không hợp lệ cho hồi quy")
-                return
-
-            # Fit mô hình
-            model = LinearRegression()
-            model.fit(X, y)
-            y_pred = model.predict(X)
-
-            # Vẽ scatter + đường hồi quy
-            for widget in self.khung_bieu_do.winfo_children():
-                widget.destroy()
-
-            self.fig, self.ax = plt.subplots(figsize=(5, 4))
-            self.canvas = FigureCanvasTkAgg(self.fig, master=self.khung_bieu_do)
-            self.canvas.get_tk_widget().pack(fill="both", expand=True)
-
-            self.ax.scatter(X, y, label="Dữ liệu thực")
-            self.ax.plot(X, y_pred, color="red", label="Đường hồi quy")
-
-            eq = f"y = {model.coef_[0]:.3f}x + {model.intercept_:.3f}"
-            self.ax.set_title(f"Hồi quy tuyến tính: {eq}")
-            self.ax.legend()
-            self.canvas.draw()
-
-        except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể thực hiện hồi quy: {e}")
-
 
     def ve_bieu_do(self):
         if self.df is None or self.df.empty:

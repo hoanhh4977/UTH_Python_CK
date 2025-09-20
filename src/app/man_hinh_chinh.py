@@ -2,7 +2,7 @@ import pandas as pd
 from tkinter import messagebox
 from tkinter.ttk import Notebook
 
-from src.app.tab import TabChonFileDB, TabTaiDuLieu, TabSQL, TabVeBieuDo
+from src.app.tab import TabChonFileDB, TabTaiDuLieu, TabSQL, TabVeBieuDo, TabHoiQuy
 
 class ManHinhChinh:
     def __init__(self, root):
@@ -27,6 +27,8 @@ class ManHinhChinh:
         self.tab_sql = TabSQL(self.notebook)
         # Tab vẽ biểu đồ
         self.tab_ve_bieu_do = TabVeBieuDo(self.notebook)
+        # Tab hồi quy tuyến tính
+        self.tab_hoi_quy = TabHoiQuy(self.notebook)
 
         # Thêm nút bấm vào tab chọn file db
         self.notebook.add(self.tab_chon_file_db.frame, text="Chọn DB")
@@ -36,6 +38,8 @@ class ManHinhChinh:
         self.notebook.add(self.tab_sql.frame, text="SQL")
         # Thêm nút bấm vào tab vẽ biểu đồ
         self.notebook.add(self.tab_ve_bieu_do.frame, text="Vẽ Biểu Đồ")
+        # Thêm nút bấm vào tab hồi quy
+        self.notebook.add(self.tab_hoi_quy.frame, text="Hồi Quy Tuyến Tính")
 
         # Truyền self vào cho thuộc tính main để các tab có thể truy cập vào 
         # thuộc tính và phương thức của màn hình chính và các tab còn lại
@@ -43,6 +47,7 @@ class ManHinhChinh:
         self.tab_tai_du_lieu.set_main(self)
         self.tab_sql.set_main(self)
         self.tab_ve_bieu_do.set_main(self)
+        self.tab_hoi_quy.set_main(self)
 
         # Sử dụng để câu lệnh SQL trong tab SQL
         self.tab_sql.run_query_callback = self.chay_sql
